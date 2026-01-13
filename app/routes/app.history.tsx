@@ -12,7 +12,7 @@ import {
   Icon,
   Box,
   Modal,
-  ProgressBar
+  ProgressBar,
 } from "@shopify/polaris";
 import { AlertTriangleIcon } from "@shopify/polaris-icons";
 
@@ -102,15 +102,24 @@ export default function LogsPage() {
   useEffect(() => {
     if (!restore) return;
 
-    const timeout = setTimeout(() => {
-      const { cursor, direction } = lastFetchParams;
-      const url = cursor
-        ? `/api/check/db?cursor=${cursor}&direction=${direction}`
-        : "/api/check/db";
-      fetcher.load(url);
-    }, 50);
+    const run = async () => {
+      try {
+        // 1️⃣ Always call timeout API first
+        await fetch("/api/timeout/db", { method: "POST" });
 
-    return () => clearTimeout(timeout);
+        // 2️⃣ Call check API only after timeout succeeds
+        const { cursor, direction } = lastFetchParams;
+        const url = cursor
+          ? `/api/check/db?cursor=${cursor}&direction=${direction}`
+          : "/api/check/db";
+
+        fetcher.load(url);
+      } catch (error) {
+        console.error("Restore flow failed:", error);
+      }
+    };
+
+    run();
   }, [restore, lastFetchParams]);
 
   // Prevent reload/close while running
@@ -169,12 +178,9 @@ export default function LogsPage() {
       setPageInfo(fetcher.data.pageInfo);
     }
     setIsLoading(false);
-
     // Reset busy state and close modal if it was open for Create Database
-
-    setModalState(prev => ({ ...prev, isOpen: false }));
+    setModalState((prev) => ({ ...prev, isOpen: false }));
     setIsSubmitting(false);
-
   }, [fetcher.state, fetcher.data]);
 
   // Pagination Handlers
@@ -319,7 +325,12 @@ export default function LogsPage() {
             >
               <InlineStack gap="200" align="start" blockAlign="center">
                 <Icon source={AlertTriangleIcon} tone="warning" />
-                <Text as="span" variant="bodySm" tone="caution" fontWeight="bold">
+                <Text
+                  as="span"
+                  variant="bodySm"
+                  tone="caution"
+                  fontWeight="bold"
+                >
                   History expires in 2 Days
                 </Text>
               </InlineStack>
@@ -355,34 +366,45 @@ export default function LogsPage() {
         }}
         title={
           isRestoring
-            ? (restoreCompleted < restoreTotal ? "Restoring Data..." : "Restore Complete")
-            : (modalState.title || "Confirm Action")
+            ? restoreCompleted < restoreTotal
+              ? "Restoring Data..."
+              : "Restore Complete"
+            : modalState.title || "Confirm Action"
         }
         primaryAction={
           isRestoring
-            ? (restoreCompleted >= restoreTotal ? {
-              content: 'Done',
-              onAction: () => {
-                setIsRestoring(false);
-                setModalState({ ...modalState, isOpen: false });
-              }
-            } : undefined)
+            ? restoreCompleted >= restoreTotal
+              ? {
+                  content: "Done",
+                  onAction: () => {
+                    setIsRestoring(false);
+                    setModalState({ ...modalState, isOpen: false });
+                  },
+                }
+              : undefined
             : {
-              content: modalState.title === "Create Database" ? "Yes, Create" : "Restore",
-              onAction: handleConfirmAction,
-              destructive: true,
-              loading: isSubmitting,
-            }
+                content:
+                  modalState.title === "Create Database"
+                    ? "Yes, Create"
+                    : "Restore",
+                onAction: handleConfirmAction,
+                destructive: true,
+                loading: isSubmitting,
+              }
         }
         secondaryActions={
           isRestoring
             ? []
             : [
-              {
-                content: modalState.title === "Create Database" ? "Maybe Later" : "Cancel",
-                onAction: () => setModalState({ ...modalState, isOpen: false }),
-              },
-            ]
+                {
+                  content:
+                    modalState.title === "Create Database"
+                      ? "Maybe Later"
+                      : "Cancel",
+                  onAction: () =>
+                    setModalState({ ...modalState, isOpen: false }),
+                },
+              ]
         }
       >
         <Modal.Section>
@@ -391,7 +413,11 @@ export default function LogsPage() {
             {isRestoring && (
               <BlockStack gap="200">
                 <ProgressBar
-                  progress={restoreTotal > 0 ? (restoreCompleted / restoreTotal) * 100 : 0}
+                  progress={
+                    restoreTotal > 0
+                      ? (restoreCompleted / restoreTotal) * 100
+                      : 0
+                  }
                   tone="highlight"
                 />
                 <Text as="p" tone="subdued">
