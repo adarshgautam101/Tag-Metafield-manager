@@ -1,5 +1,5 @@
-import { useNavigate, useFetcher, useOutletContext } from "react-router";
-import { useEffect, useState } from "react";
+import { useNavigate, useFetcher } from "react-router";
+import { useState, useEffect } from "react";
 import {
   Page,
   Layout,
@@ -11,7 +11,7 @@ import {
   Icon,
   Button,
   Box,
-
+  Modal,
 } from "@shopify/polaris";
 import {
   DiscountIcon,
@@ -23,12 +23,58 @@ import {
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<any>();
 
+  // ---- STATE ----
+  const [isDbCreated, setIsDbCreated] = useState(false);
+  const [dbChecked, setDbChecked] = useState(false); // 👈 critical
+  const [modalOpen, setModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // ---- CHECK DB ON MOUNT ----
+  useEffect(() => {
+    fetcher.load("/api/check/db");
+  }, []);
+
+  // ---- HANDLE FETCHER RESULTS ----
+  useEffect(() => {
+    if (fetcher.state !== "idle" || !fetcher.data) return;
+
+    const success = Boolean(fetcher.data?.success);
+
+    setIsDbCreated(success);
+    setDbChecked(true);
+
+    // Handle DB creation completion
+    if (isSubmitting) {
+      setIsSubmitting(false);
+      setModalOpen(false);
+
+      if (success) {
+        setShowSuccess(true);
+      }
+    }
+  }, [fetcher.state, fetcher.data, isSubmitting]);
+
+  // ---- CREATE DB ----
+  const createDatabase = () => {
+    setIsSubmitting(true);
+    fetcher.submit(
+      {},
+      {
+        method: "post",
+        action: "/api/metaCreate/db",
+      }
+    );
+  };
+
+  // ---- MODULES ----
   const modules = [
     {
       title: "Add Tags",
-      desc: "Quickly append multiple tags to products, customers, blogposts, or orders using a simple CSV identifier list.",
+      desc:
+        "Quickly append multiple tags to products, customers, blogposts, or orders using a simple CSV identifier list.",
       route: "/app/add-tags",
       icon: DiscountIcon,
       action: "Add Tags",
@@ -36,7 +82,8 @@ export default function HomePage() {
     },
     {
       title: "Remove Tags",
-      desc: "Search for tags by condition and remove them from your entire store or specific items via CSV upload.",
+      desc:
+        "Search for tags by condition and remove them from your entire store or specific items via CSV upload.",
       route: "/app/remove-tags",
       icon: DeleteIcon,
       action: "Remove Tags",
@@ -44,14 +91,14 @@ export default function HomePage() {
     },
     {
       title: "Metafield Manager",
-      desc: "Manage metafield definitions and values. Clear data globally or perform bulk updates using CSV files.",
+      desc:
+        "Manage metafield definitions and values. Clear data globally or perform bulk updates using CSV files.",
       route: "/app/metafield-manage",
       icon: DatabaseIcon,
       action: "Manage Metafields",
       tone: "highlight",
     },
   ];
-
 
   return (
     <Page
@@ -70,7 +117,29 @@ export default function HomePage() {
         },
       ]}
     >
+
       <BlockStack gap="500">
+        {dbChecked && !isDbCreated && (
+          <Layout>
+            <Layout.Section>
+              <Banner
+                title="Database Setup Required"
+                tone="warning"
+                icon={DatabaseIcon}
+                action={{
+                  content: "Create Database",
+                  onAction: () => setModalOpen(true),
+                }}
+              >
+                <p>
+                  Please initialize your database to enable activity history tracking
+                  and the data restore feature.
+                </p>
+              </Banner>
+            </Layout.Section>
+          </Layout>
+        )}
+
         {/* MODULE GRID */}
         <Layout>
           <Layout.Section>
@@ -99,9 +168,9 @@ export default function HomePage() {
                     </BlockStack>
 
                     <Button
-                      onClick={() => navigate(module.route)}
-                      variant="primary"
                       fullWidth
+                      variant="primary"
+                      onClick={() => navigate(module.route)}
                     >
                       {module.action}
                     </Button>
@@ -111,7 +180,6 @@ export default function HomePage() {
             </InlineGrid>
           </Layout.Section>
 
-          {/* LOWER BANNER */}
           <Layout.Section>
             <Banner
               title="Export your store data"
@@ -122,13 +190,59 @@ export default function HomePage() {
               }}
             >
               <p>
-                Export your store data as CSV to review and prepare changes before running any operation.
+                Export your store data as CSV to review and prepare changes
+                before running any operation.
               </p>
             </Banner>
           </Layout.Section>
-
         </Layout>
       </BlockStack>
-    </Page>
+
+      {/* CREATE DB MODAL */}
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Create Database"
+        primaryAction={{
+          content: "Yes, Create",
+          onAction: createDatabase,
+          loading: isSubmitting,
+        }}
+        secondaryActions={[
+          {
+            content: "Maybe Later",
+            onAction: () => setModalOpen(false),
+          },
+        ]}
+      >
+        <Modal.Section>
+          <Text as="p">
+            Creating a metaobject named{" "}
+            <Text as="span" fontWeight="bold">
+              “Tag Metafield App Database”
+            </Text>{" "}
+            to store your app activity history. Would you like to continue?
+          </Text>
+        </Modal.Section>
+      </Modal>
+
+      {/* SUCCESS MODAL */}
+      <Modal
+        open={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        title="Database Created Successfully"
+        primaryAction={{
+          content: "Close",
+          onAction: () => setShowSuccess(false),
+        }}
+      >
+        <Modal.Section>
+          <Text as="p">
+            Your database has been created successfully. You can now track and
+            view all history.
+          </Text>
+        </Modal.Section>
+      </Modal>
+    </Page >
   );
 }
