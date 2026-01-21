@@ -15,90 +15,79 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return { showForm: Boolean(login) };
 };
 
+
+
 export default function App() {
   const { showForm } = useLoaderData<typeof loader>();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-black selection:text-white">
-      {/* Main Container */}
-      <div className="max-w-5xl mx-auto px-6 py-16 md:py-24 flex flex-col items-center">
-        
-        {/* Hero Section */}
-        <div className="text-center space-y-6 mb-16">
-          <div className="inline-block px-3 py-1 bg-black text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-full mb-4">
-            Shopify Certified Partner
-          </div>
-          <h1 className="text-6xl md:text-7xl font-black tracking-tight uppercase leading-none">
-            Tag Field <span className="text-gray-400">Manager</span>
-          </h1>
-          <p className="text-xl md:text-2xl font-medium text-slate-500 max-w-2xl mx-auto leading-relaxed">
-            The high-performance engine for bulk managing tags and metafields across your entire catalog.
-          </p>
-        </div>
+    <div className="min-h-screen bg-white text-black font-sans px-4 py-10">
+      <div className="mx-auto max-w-5xl space-y-14">
 
-        {/* Login Form Card */}
+        {/* Header */}
+        <header className="text-center space-y-5">
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight uppercase">
+            Tag Metafield Manager
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            A professional-grade tool to bulk manage tags and metafields across your Shopify store with safety and control.
+          </p>
+        </header>
+
+        {/* Login */}
         {showForm && (
-          <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-100 mb-20">
-            <Form className="space-y-5" method="post" action="/auth/login">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
+          <section className="flex justify-center">
+            <Form
+              method="post"
+              action="/auth/login"
+              className="w-full max-w-md space-y-4 border border-gray-200 rounded-2xl p-6 shadow-sm"
+            >
+              <label className="block">
+                <span className="block text-xs font-semibold uppercase tracking-wide text-gray-600 mb-1">
                   Shop Domain
-                </label>
-                <div className="relative">
-                  <input
-                    className="w-full px-4 py-4 bg-slate-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-black transition-all outline-none placeholder:text-slate-300 font-medium"
-                    type="text"
-                    name="shop"
-                    placeholder="my-store.myshopify.com"
-                    required
-                  />
-                </div>
-              </div>
+                </span>
+                <input
+                  type="text"
+                  name="shop"
+                  placeholder="my-store.myshopify.com"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none"
+                />
+              </label>
+
               <button
-                className="w-full py-4 bg-black text-white font-black rounded-xl hover:bg-zinc-800 active:scale-[0.98] transition-all uppercase tracking-widest shadow-lg shadow-black/10"
                 type="submit"
+                className="w-full bg-black text-white py-3 rounded-lg font-semibold uppercase tracking-wide hover:bg-gray-900 transition"
               >
-                Get Started
+                Log in
               </button>
             </Form>
-          </div>
+          </section>
         )}
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full border-t border-slate-200 pt-16">
-          <div className="group">
-            <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-black group-hover:text-white transition-colors">
-              <span className="font-bold">01</span>
-            </div>
-            <h3 className="text-lg font-bold uppercase tracking-tight mb-2">Bulk Tagging</h3>
-            <p className="text-slate-500 leading-relaxed text-sm">
-              Deploy tags across thousands of entities instantly via smart-mapping CSVs.
+        {/* Feature Grid */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t pt-10">
+          <div className="p-6 border border-gray-200 rounded-xl hover:shadow-sm transition">
+            <h3 className="text-lg font-bold mb-2">Bulk Tag Operations</h3>
+            <p className="text-sm text-gray-600">
+              Add or remove tags across thousands of products, customers, and orders using CSV-based processing.
             </p>
           </div>
 
-          <div className="group">
-            <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-black group-hover:text-white transition-colors">
-              <span className="font-bold">02</span>
-            </div>
-            <h3 className="text-lg font-bold uppercase tracking-tight mb-2">Metafield Control</h3>
-            <p className="text-slate-500 leading-relaxed text-sm">
-              Deep-clean unused fields and batch-update values with granular precision.
+          <div className="p-6 border border-gray-200 rounded-xl hover:shadow-sm transition">
+            <h3 className="text-lg font-bold mb-2">Metafield Management</h3>
+            <p className="text-sm text-gray-600">
+              View, update, or clean up metafields in bulk with controlled execution and validation.
             </p>
           </div>
 
-          <div className="group">
-            <div className="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center mb-4">
-              <span className="font-bold">03</span>
-            </div>
-            <h3 className="text-lg font-bold uppercase tracking-tight mb-2 italic">Safety Net</h3>
-            <p className="text-slate-500 leading-relaxed text-sm">
-              Every change is logged in your **History**. Revert any bulk operation with a single click for up to **48 hours**.
+          <div className="p-6 border border-gray-200 rounded-xl hover:shadow-sm transition">
+            <h3 className="text-lg font-bold mb-2">History & Undo Safety</h3>
+            <p className="text-sm text-gray-600">
+              Every operation is recorded. You can undo eligible actions within <strong>2 days</strong>. History is automatically cleared after this period.
             </p>
           </div>
-        </div>
-
+        </section>
       </div>
     </div>
   );
 }
-
