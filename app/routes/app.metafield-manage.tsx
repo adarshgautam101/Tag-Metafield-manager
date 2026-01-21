@@ -919,7 +919,7 @@ export default function MetafieldManage() {
       variant: "variant SKU",
       company: "company external ID",
       location: "location name",
-      metaobject: "location handle",
+      metaobject: "metaobject handle",
     };
 
     // remove "_reference"
