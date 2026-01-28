@@ -123,20 +123,32 @@ export default function LogsPage() {
   }, [restore, lastFetchParams]);
 
   // Prevent reload/close while running
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isRestoring) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
+useEffect(() => {
+  if (!isRestoring) return;
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+  // 1. Block reload / tab close
+  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    e.preventDefault();
+    e.returnValue = "";
+  };
 
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [isRestoring]);
+  // 2. Block back / forward navigation
+  const blockNavigation = () => {
+    window.history.pushState(null, "", window.location.href);
+  };
+
+  // Push a state so back button has nowhere to go
+  window.history.pushState(null, "", window.location.href);
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  window.addEventListener("popstate", blockNavigation);
+
+  return () => {
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.removeEventListener("popstate", blockNavigation);
+  };
+}, [isRestoring]);
+
 
   useEffect(() => {
     const runRestore = async () => {
