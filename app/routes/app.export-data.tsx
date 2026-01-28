@@ -210,16 +210,35 @@ export default function ExportData() {
     URL.revokeObjectURL(url);
   };
 
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isExporting) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isExporting]);
+useEffect(() => {
+  if (!isExporting) return;
+
+  // 1. Block reload / tab close
+  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    e.preventDefault();
+    e.returnValue = "";
+  };
+
+  // 2. Block back / forward navigation
+  const blockNavigation = () => {
+    window.history.pushState(null, "", window.location.href);
+  };
+
+  // Push a state so back button has nowhere to go
+  window.history.pushState(null, "", window.location.href);
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  window.addEventListener("popstate", blockNavigation);
+
+  return () => {
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.removeEventListener("popstate", blockNavigation);
+  };
+}, [isExporting]);
+
+
+
+  
 
   return (
 
