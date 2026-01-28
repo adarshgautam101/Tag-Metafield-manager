@@ -387,16 +387,32 @@ export default function TagManager() {
     }
   }, [specificEnd, globalResult.results]);
 
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isRemoving) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isRemoving]);
+useEffect(() => {
+  if (!isRemoving) return;
+
+  // 1. Block reload / tab close
+  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    e.preventDefault();
+    e.returnValue = "";
+  };
+
+  // 2. Block back / forward navigation
+  const blockNavigation = () => {
+    window.history.pushState(null, "", window.location.href);
+  };
+
+  // Push a state so back button has nowhere to go
+  window.history.pushState(null, "", window.location.href);
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  window.addEventListener("popstate", blockNavigation);
+
+  return () => {
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.removeEventListener("popstate", blockNavigation);
+  };
+}, [isRemoving]);
+
 
   useEffect(() => {
     if (selectedTags.length === 0) {
@@ -1239,3 +1255,4 @@ export default function TagManager() {
     </Page>
   );
 }
+
