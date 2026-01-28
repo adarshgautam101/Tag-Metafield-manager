@@ -290,16 +290,42 @@ export default function SimpleTagManager() {
   }, [fetcher.state, fetcher.data, isRunning, results.length, csvData]);
 
   useEffect(() => {
+    if (!isRunning) return;
+
+    // 1. Block reload / tab close
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isRunning) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
+      e.preventDefault();
+      e.returnValue = "";
     };
+
+    // 2. Block back / forward navigation
+    const blockNavigation = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    // Push a state so back button has nowhere to go
+    window.history.pushState(null, "", window.location.href);
+
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", blockNavigation);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", blockNavigation);
+    };
   }, [isRunning]);
 
+
+
+
+
+
+
+
+
+
+
+  
   useEffect(() => {
     // Reset state on object type change
     setCsvData([]);
@@ -848,4 +874,5 @@ export default function SimpleTagManager() {
     </Page>
   );
 }
+
 
