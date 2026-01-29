@@ -820,7 +820,7 @@ export default function SimpleTagManager() {
       >
         <Modal.Section>
           <Text as="p">
-            You are about to add {tags.length} tag(s) to {csvData.length} resource(s) from your CSV.
+            You are ready to add {tags.length} tag's to {csvData.length} resource's from your CSV.
             This process will run in the background.
           </Text>
         </Modal.Section>
@@ -874,5 +874,6 @@ export default function SimpleTagManager() {
     </Page>
   );
 }
+
 
 
