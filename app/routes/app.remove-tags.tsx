@@ -1248,11 +1248,12 @@ useEffect(() => {
       >
         <Modal.Section>
           <Text as="p">
-            Are you sure you want to remove {selectedTags.length} tag(s)?
+            Are you sure you want to remove {selectedTags.length} tag's?
           </Text>
         </Modal.Section>
       </Modal>
     </Page>
   );
 }
+
 
